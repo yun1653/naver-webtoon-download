@@ -32,17 +32,27 @@ const downloadImage = (path, url, titleId, no, retryCount) => {
       (error) => {
         // TODO: 경로 이름 정하는 것 자세히 봐라.
         if (error) throw error;
-        console.log('이 파일이 저장되었습니다.');
+        console.log(
+          `${titleId}_${no}_${url.split('_IMAG01_')[1]} 파일이 저장되었습니다.`
+        );
       }
     );
   });
 };
 
 // 1화 전체의 이미지를 가져오는 함수 getImageUrls
-const getImageUrls = (titleId, no) => {
+const getImageUrls = (titleId, no, nidAut, nidSes) => {
   let originalUrl = `https://comic.naver.com/webtoon/detail?titleId=${titleId}&no=${no}&weekday=wed`;
 
-  request(originalUrl, function (error, response, body) {
+  // 로그인 구현을 위한 세션쿠키 주입
+  let j = request.jar();
+  let cookie1 = request.cookie(`NID_AUT=${nidAut}`);
+  let cookie2 = request.cookie(`NID_SES=${nidSes}`);
+  let url = 'https://comic.naver.com';
+  j.setCookie(cookie1, url);
+  j.setCookie(cookie2, url);
+
+  request({ url: originalUrl, jar: j }, function (error, response, body) {
     const $ = cheerio.load(body);
 
     for (let i = 0; i < $('.wt_viewer img').length; i++) {
@@ -58,9 +68,9 @@ const getImageUrls = (titleId, no) => {
 };
 
 //1화부터 i화까지 다운로드
-for (let i = 0, j = 0; i < 5; i++, j++) {
+for (let i = 22, j = 0; i <= 23; i++, j++) {
   setTimeout(() => {
     //TODO: 요청에 딜레이를 주는 방법 (j변수는 시간 딜레이를 위해 넣었음)
-    getImageUrls(791140, i);
-  }, j * 3000);
+    getImageUrls(660366, i, 'NID_AUT쿠키값', 'NID_SES쿠키값');
+  }, j * 1000);
 }
